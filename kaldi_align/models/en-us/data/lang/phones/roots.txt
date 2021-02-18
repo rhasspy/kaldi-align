@@ -1,0 +1,43 @@
+shared split NSN NSN_B NSN_E NSN_I NSN_S
+shared split SIL SIL_B SIL_E SIL_I SIL_S
+shared split SPN SPN_B SPN_E SPN_I SPN_S
+shared split ɑ_B ɑ_E ɑ_I ɑ_S ˈɑ_B ˈɑ_E ˈɑ_I ˈɑ_S ˌɑ_B ˌɑ_E ˌɑ_I ˌɑ_S
+shared split æ_B æ_E æ_I æ_S ˈæ_B ˈæ_E ˈæ_I ˈæ_S ˌæ_B ˌæ_E ˌæ_I ˌæ_S
+shared split ɛ_B ɛ_E ɛ_I ɛ_S ˈɛ_B ˈɛ_E ˈɛ_I ˈɛ_S ˌɛ_B ˌɛ_E ˌɛ_I ˌɛ_S
+shared split i_B i_E i_I i_S ˈi_B ˈi_E ˈi_I ˈi_S ˌi_B ˌi_E ˌi_I ˌi_S
+shared split ɪ_B ɪ_E ɪ_I ɪ_S ˈɪ_B ˈɪ_E ˈɪ_I ˈɪ_S ˌɪ_B ˌɪ_E ˌɪ_I ˌɪ_S
+shared split ɔ_B ɔ_E ɔ_I ɔ_S ˈɔ_B ˈɔ_E ˈɔ_I ˈɔ_S ˌɔ_B ˌɔ_E ˌɔ_I ˌɔ_S
+shared split ʊ_B ʊ_E ʊ_I ʊ_S ˈʊ_B ˈʊ_E ˈʊ_I ˈʊ_S ˌʊ_B ˌʊ_E ˌʊ_I ˌʊ_S
+shared split ʌ_B ʌ_E ʌ_I ʌ_S ˈʌ_B ˈʌ_E ˈʌ_I ˈʌ_S ˌʌ_B ˌʌ_E ˌʌ_I ˌʌ_S
+shared split u_B u_E u_I u_S ˈu_B ˈu_E ˈu_I ˈu_S ˌu_B ˌu_E ˌu_I ˌu_S
+shared split ə_B ə_E ə_I ə_S ˈə_B ˈə_E ˈə_I ˈə_S ˌə_B ˌə_E ˌə_I ˌə_S
+shared split ɚ_B ɚ_E ɚ_I ɚ_S ˈɚ_B ˈɚ_E ˈɚ_I ˈɚ_S ˌɚ_B ˌɚ_E ˌɚ_I ˌɚ_S
+shared split eɪ_B eɪ_E eɪ_I eɪ_S ˈeɪ_B ˈeɪ_E ˈeɪ_I ˈeɪ_S ˌeɪ_B ˌeɪ_E ˌeɪ_I ˌeɪ_S
+shared split aɪ_B aɪ_E aɪ_I aɪ_S ˈaɪ_B ˈaɪ_E ˈaɪ_I ˈaɪ_S ˌaɪ_B ˌaɪ_E ˌaɪ_I ˌaɪ_S
+shared split oʊ_B oʊ_E oʊ_I oʊ_S ˈoʊ_B ˈoʊ_E ˈoʊ_I ˈoʊ_S ˌoʊ_B ˌoʊ_E ˌoʊ_I ˌoʊ_S
+shared split ɔɪ_B ɔɪ_E ɔɪ_I ɔɪ_S ˈɔɪ_B ˈɔɪ_E ˈɔɪ_I ˈɔɪ_S ˌɔɪ_B ˌɔɪ_E ˌɔɪ_I ˌɔɪ_S
+shared split aʊ_B aʊ_E aʊ_I aʊ_S ˈaʊ_B ˈaʊ_E ˈaʊ_I ˈaʊ_S ˌaʊ_B ˌaʊ_E ˌaʊ_I ˌaʊ_S
+shared split p_B p_E p_I p_S ˈp_B ˈp_E ˈp_I ˈp_S ˌp_B ˌp_E ˌp_I ˌp_S
+shared split b_B b_E b_I b_S ˈb_B ˈb_E ˈb_I ˈb_S ˌb_B ˌb_E ˌb_I ˌb_S
+shared split t_B t_E t_I t_S ˈt_B ˈt_E ˈt_I ˈt_S ˌt_B ˌt_E ˌt_I ˌt_S
+shared split d_B d_E d_I d_S ˈd_B ˈd_E ˈd_I ˈd_S ˌd_B ˌd_E ˌd_I ˌd_S
+shared split k_B k_E k_I k_S ˈk_B ˈk_E ˈk_I ˈk_S ˌk_B ˌk_E ˌk_I ˌk_S
+shared split ɡ_B ɡ_E ɡ_I ɡ_S ˈɡ_B ˈɡ_E ˈɡ_I ˈɡ_S ˌɡ_B ˌɡ_E ˌɡ_I ˌɡ_S
+shared split t͡ʃ_B t͡ʃ_E t͡ʃ_I t͡ʃ_S ˈt͡ʃ_B ˈt͡ʃ_E ˈt͡ʃ_I ˈt͡ʃ_S ˌt͡ʃ_B ˌt͡ʃ_E ˌt͡ʃ_I ˌt͡ʃ_S
+shared split d͡ʒ_B d͡ʒ_E d͡ʒ_I d͡ʒ_S ˈd͡ʒ_B ˈd͡ʒ_E ˈd͡ʒ_I ˈd͡ʒ_S ˌd͡ʒ_B ˌd͡ʒ_E ˌd͡ʒ_I ˌd͡ʒ_S
+shared split f_B f_E f_I f_S ˈf_B ˈf_E ˈf_I ˈf_S ˌf_B ˌf_E ˌf_I ˌf_S
+shared split v_B v_E v_I v_S ˈv_B ˈv_E ˈv_I ˈv_S ˌv_B ˌv_E ˌv_I ˌv_S
+shared split θ_B θ_E θ_I θ_S ˈθ_B ˈθ_E ˈθ_I ˈθ_S ˌθ_B ˌθ_E ˌθ_I ˌθ_S
+shared split ð_B ð_E ð_I ð_S ˈð_B ˈð_E ˈð_I ˈð_S ˌð_B ˌð_E ˌð_I ˌð_S
+shared split s_B s_E s_I s_S ˈs_B ˈs_E ˈs_I ˈs_S ˌs_B ˌs_E ˌs_I ˌs_S
+shared split z_B z_E z_I z_S ˈz_B ˈz_E ˈz_I ˈz_S ˌz_B ˌz_E ˌz_I ˌz_S
+shared split ʃ_B ʃ_E ʃ_I ʃ_S ˈʃ_B ˈʃ_E ˈʃ_I ˈʃ_S ˌʃ_B ˌʃ_E ˌʃ_I ˌʃ_S
+shared split ʒ_B ʒ_E ʒ_I ʒ_S ˈʒ_B ˈʒ_E ˈʒ_I ˈʒ_S ˌʒ_B ˌʒ_E ˌʒ_I ˌʒ_S
+shared split h_B h_E h_I h_S ˈh_B ˈh_E ˈh_I ˈh_S ˌh_B ˌh_E ˌh_I ˌh_S
+shared split l_B l_E l_I l_S ˈl_B ˈl_E ˈl_I ˈl_S ˌl_B ˌl_E ˌl_I ˌl_S
+shared split m_B m_E m_I m_S ˈm_B ˈm_E ˈm_I ˈm_S ˌm_B ˌm_E ˌm_I ˌm_S
+shared split n_B n_E n_I n_S ˈn_B ˈn_E ˈn_I ˈn_S ˌn_B ˌn_E ˌn_I ˌn_S
+shared split ŋ_B ŋ_E ŋ_I ŋ_S ˈŋ_B ˈŋ_E ˈŋ_I ˈŋ_S ˌŋ_B ˌŋ_E ˌŋ_I ˌŋ_S
+shared split ɹ_B ɹ_E ɹ_I ɹ_S ˈɹ_B ˈɹ_E ˈɹ_I ˈɹ_S ˌɹ_B ˌɹ_E ˌɹ_I ˌɹ_S
+shared split w_B w_E w_I w_S ˈw_B ˈw_E ˈw_I ˈw_S ˌw_B ˌw_E ˌw_I ˌw_S
+shared split j_B j_E j_I j_S ˈj_B ˈj_E ˈj_I ˈj_S ˌj_B ˌj_E ˌj_I ˌj_S

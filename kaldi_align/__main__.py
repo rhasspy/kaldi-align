@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import argparse
-import json
 import logging
 import math
 import os
@@ -181,20 +180,26 @@ def main():
     mfcc_exp_dir = output_dir / "exp" / "make_mfcc"
     num_mfcc_jobs = min(args.num_jobs, len(utterances))
 
-    _LOGGER.debug("Creating MFCCs in %s (num_jobs=%s)", mfcc_exp_dir, num_mfcc_jobs)
-    fix_data_dir()
-    run(
-        "steps/make_mfcc.sh",
-        "--cmd",
-        _TRAIN_CMD,
-        "--nj",
-        str(num_mfcc_jobs),
-        str(align_dir),
-        str(mfcc_exp_dir),
-        str(mfcc_dir),
-    )
-    run("steps/compute_cmvn_stats.sh", str(align_dir), str(mfcc_exp_dir), str(mfcc_dir))
-    fix_data_dir()
+    if not args.skip_mfccs:
+        _LOGGER.debug("Creating MFCCs in %s (num_jobs=%s)", mfcc_exp_dir, num_mfcc_jobs)
+        fix_data_dir()
+        run(
+            "steps/make_mfcc.sh",
+            "--cmd",
+            _TRAIN_CMD,
+            "--nj",
+            str(num_mfcc_jobs),
+            str(align_dir),
+            str(mfcc_exp_dir),
+            str(mfcc_dir),
+        )
+        run(
+            "steps/compute_cmvn_stats.sh",
+            str(align_dir),
+            str(mfcc_exp_dir),
+            str(mfcc_dir),
+        )
+        fix_data_dir()
 
     # -----
     # Align
@@ -226,9 +231,9 @@ def main():
     _LOGGER.info("Alignment finished")
 
     # Save utterance mapping
-    with open(args.output_dir / "utt_map.txt", "w") as mapping_file:
+    with open(output_dir / "utt_map.txt", "w") as mapping_file:
         for kaldi_utt_id, utt_id in kaldi_to_utt.items():
-            print(kaldi_utt_id, utt_id)
+            print(kaldi_utt_id, utt_id, file=mapping_file)
 
     # ---------------
     # Convert to JSON
@@ -275,7 +280,8 @@ def main():
             utt_words[utt_id].append({"word": word, "phones": word_phones})
 
     with open(args.output_file, "w") as output_file:
-        with jsonlines.Writer(output_file) as writer:
+        writer: jsonlines.Writer = jsonlines.Writer(output_file)
+        with writer:
             for utt_id, utt_words in utt_words.items():
                 ipas = [_WORD_BREAK]
                 for word_idx, utt_word in enumerate(utt_words):
@@ -303,9 +309,11 @@ def get_args():
     parser.add_argument(
         "--output-file", required=True, help="Path to write alignment JSONL"
     )
-    # parser.add_argument(
-    #     "--speakers", action="store_true", help="Metadata format is id|speaker|text"
-    # )
+    parser.add_argument(
+        "--skip-mfccs",
+        action="store_true",
+        help="Assume MFCCs have already been created",
+    )
     parser.add_argument("--model", required=True, help="Name or path of Kaldi model")
     parser.add_argument("--audio-files", help="File with paths of audio files")
     parser.add_argument(

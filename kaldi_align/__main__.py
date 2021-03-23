@@ -11,6 +11,8 @@ import tempfile
 from collections import defaultdict
 from pathlib import Path
 
+import jsonlines
+
 _LOGGER = logging.getLogger("kaldi_align")
 
 _DIR = Path(__file__).parent
@@ -100,8 +102,21 @@ def main():
     align_dir = data_dir / "align"
     lang_dir = model_dir / "data" / "lang"
 
-    metadata_csv = Path(args.metadata_csv)
-    wav_dir = metadata_csv.parent
+    metadata_csv = Path(args.metadata)
+    audio_paths = {}
+
+    if args.audio_files:
+        with open(args.audio_files, "r") as audio_files:
+            for line in audio_files:
+                line = line.strip()
+                if not line:
+                    continue
+
+                audio_path = Path(line)
+
+                # Stem is utterance id
+                audio_paths[audio_path.stem] = audio_path
+
     speaker = "speaker1"
     speakers = [speaker]
     align_dir.mkdir(parents=True, exist_ok=True)
@@ -133,13 +148,21 @@ def main():
 
             print(utt_id, kaldi_utt_id, file=id_file)
 
-            wav_path = wav_dir / (utt_id + ".wav")
+            audio_path = audio_paths.get(utt_id)
+            if audio_path is None:
+                audio_path = metadata_csv.parent / f"{utt_id}.wav"
+                if not audio_path.is_file():
+                    _LOGGER.warning("Missing audio file at %s", audio_path)
+                continue
+
             text = utterances[utt_id]
 
             print(kaldi_utt_id, text, file=text_file)
             print(kaldi_utt_id, speaker, file=utt2spk_file)
             print(
-                kaldi_utt_id, f"sox {wav_path} -r 16000 -c 1 -t wav -|", file=scp_file
+                kaldi_utt_id,
+                f"ffmpeg -y -i {audio_path} -ar 16000 -ac 1 -acodec pcm_s16le -f wav -|",
+                file=scp_file,
             )
 
     # Remove existing spk2utt file
@@ -202,6 +225,11 @@ def main():
 
     _LOGGER.info("Alignment finished")
 
+    # Save utterance mapping
+    with open(args.output_dir / "utt_map.txt", "w") as mapping_file:
+        for kaldi_utt_id, utt_id in kaldi_to_utt.items():
+            print(kaldi_utt_id, utt_id)
+
     # ---------------
     # Convert to JSON
     # ---------------
@@ -246,21 +274,22 @@ def main():
 
             utt_words[utt_id].append({"word": word, "phones": word_phones})
 
-    for utt_id, utt_words in utt_words.items():
-        ipas = [_WORD_BREAK]
-        for word_idx, utt_word in enumerate(utt_words):
-            if utt_word["word"] == "<eps>":
-                if 0 < word_idx < (len(utt_words) - 1):
-                    ipas.append(_BREAK_MINOR)
-                    ipas.append(_WORD_BREAK)
-            else:
-                ipas.extend(wp["phone"] for wp in utt_word["phones"])
-                ipas.append(_WORD_BREAK)
+    with open(args.output_file, "w") as output_file:
+        with jsonlines.Writer(output_file) as writer:
+            for utt_id, utt_words in utt_words.items():
+                ipas = [_WORD_BREAK]
+                for word_idx, utt_word in enumerate(utt_words):
+                    if utt_word["word"] == "<eps>":
+                        if 0 < word_idx < (len(utt_words) - 1):
+                            ipas.append(_BREAK_MINOR)
+                            ipas.append(_WORD_BREAK)
+                    else:
+                        ipas.extend(wp["phone"] for wp in utt_word["phones"])
+                        ipas.append(_WORD_BREAK)
 
-        ipas.append(_BREAK_MAJOR)
+                ipas.append(_BREAK_MAJOR)
 
-        json.dump({"id": utt_id, "words": utt_words, "ipa": ipas}, sys.stdout)
-        print("")
+                writer.write({"id": utt_id, "words": utt_words, "ipa": ipas})
 
 
 # -----------------------------------------------------------------------------
@@ -268,11 +297,17 @@ def main():
 
 def get_args():
     parser = argparse.ArgumentParser(prog="kaldi-align")
-    parser.add_argument("metadata_csv", help="Path to CSV metadata with id|text")
+    parser.add_argument(
+        "--metadata", required=True, help="Path to CSV metadata with id|text"
+    )
+    parser.add_argument(
+        "--output-file", required=True, help="Path to write alignment JSONL"
+    )
     # parser.add_argument(
     #     "--speakers", action="store_true", help="Metadata format is id|speaker|text"
     # )
     parser.add_argument("--model", required=True, help="Name or path of Kaldi model")
+    parser.add_argument("--audio-files", help="File with paths of audio files")
     parser.add_argument(
         "--kaldi-dir", help="Path to Kaldi directory (default: $PWD/kaldi)"
     )

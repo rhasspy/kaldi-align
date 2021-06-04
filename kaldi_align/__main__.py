@@ -12,7 +12,7 @@ from pathlib import Path
 
 import jsonlines
 
-from .utils import download_kaldi, download_model
+from .utils import LANG_ALIAS, download_kaldi, download_model
 
 _LOGGER = logging.getLogger("kaldi_align")
 
@@ -29,17 +29,6 @@ _BREAK_MINOR = "|"
 _BREAK_MAJOR = "\u2016"  # ‖
 
 _FRAMES_PER_SEC = 100
-
-_MODEL_ALIAS = {
-    "cs": "cs-cz",
-    "de": "de-de",
-    "en": "en-us",
-    "es": "es-es",
-    "fr": "fr-fr",
-    "it": "it-it",
-    "ru": "ru-ru",
-    "sv": "sv-se",
-}
 
 # -----------------------------------------------------------------------------
 
@@ -85,7 +74,7 @@ def main():
     model_dir = Path(args.model)
     if not model_dir.is_dir():
         # Model is a name instead of a directory
-        args.model = _MODEL_ALIAS.get(args.model, args.model)
+        args.model = LANG_ALIAS.get(args.model, args.model)
         model_dir = args.download_dir / "models" / args.model
 
         if not model_dir.is_dir():
@@ -179,7 +168,7 @@ def main():
                 continue
 
             if args.has_speaker:
-                utt_id, speaker, text = line.split("|", maxsplit=1)
+                utt_id, speaker, text = line.split("|", maxsplit=2)
             else:
                 utt_id, text = line.split("|", maxsplit=1)
                 speaker = "speaker1"

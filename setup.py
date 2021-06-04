@@ -41,6 +41,7 @@ setuptools.setup(
         "console_scripts": [
             "kaldi_align = kaldi_align.__main__:main",
             "align2wavs = kaldi_align.align2wavs:main",
+            "align2csv = kaldi_align.align2csv:main",
         ]
     },
     classifiers=[

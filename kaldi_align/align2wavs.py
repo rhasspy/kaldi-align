@@ -6,7 +6,9 @@ from pathlib import Path
 
 from pydub import AudioSegment
 
-_LOGGER = logging.getLogger("align2csv")
+from .utils import load_metadata
+
+_LOGGER = logging.getLogger("align2wavs")
 
 # -----------------------------------------------------------------------------
 
@@ -33,6 +35,9 @@ def main():
         default=0.1,
         help="Seconds of audio to leave in trimmed file (default: 0.1)",
     )
+    parser.add_argument(
+        "--has-speaker", action="store_true", help="Metadata has format id|speaker|text"
+    )
 
     parser.add_argument(
         "--debug", action="store_true", help="Print DEBUG messages to the console"
@@ -58,7 +63,7 @@ def main():
 
     # Load metadata
     _LOGGER.debug("Loading metadata from %s", args.metadata)
-    texts = load_metadata(args.metadata)
+    texts = load_metadata(args.metadata, has_speaker=args.has_speaker)
     _LOGGER.info("Loaded %s utterance(s)", len(texts))
 
     # Cache file paths by stem
@@ -88,7 +93,12 @@ def main():
             try:
                 align_obj = json.loads(line)
                 utt_id = align_obj["id"]
-                utt_text = texts.get(utt_id)
+
+                if args.has_speaker:
+                    _speaker, utt_text = texts.get(utt_id)
+                else:
+                    utt_text = texts.get(utt_id)
+
                 if not utt_text:
                     _LOGGER.warning("No text for %s", utt_id)
                     continue
@@ -138,23 +148,6 @@ def main():
             except Exception as e:
                 _LOGGER.fatal("Error on line %s: %s", line_idx + 1, line)
                 raise e
-
-
-# -----------------------------------------------------------------------------
-
-
-def load_metadata(metadata_path):
-    texts = {}
-    with open(metadata_path, "r") as metadata_file:
-        for line in metadata_file:
-            line = line.strip()
-            if not line:
-                continue
-
-            utt_id, text = line.split("|", maxsplit=1)
-            texts[utt_id] = text
-
-    return texts
 
 
 # -----------------------------------------------------------------------------

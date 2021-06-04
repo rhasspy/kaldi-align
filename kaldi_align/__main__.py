@@ -10,6 +10,7 @@ import tempfile
 from collections import defaultdict
 from pathlib import Path
 
+import gruut
 import jsonlines
 
 from .utils import LANG_ALIAS, download_kaldi, download_model
@@ -71,10 +72,12 @@ def main():
     _LOGGER.debug("Kaldi binaries expected in %s", bin_dir)
 
     # Download model
+    language: typing.Optional[str] = None
     model_dir = Path(args.model)
     if not model_dir.is_dir():
         # Model is a name instead of a directory
         args.model = LANG_ALIAS.get(args.model, args.model)
+        language = args.model
         model_dir = args.download_dir / "models" / args.model
 
         if not model_dir.is_dir():
@@ -153,6 +156,11 @@ def main():
 
     _LOGGER.debug("Loading transcriptions from %s", metadata_csv)
 
+    tokenizer: typing.Optional[gruut.Tokenizer] = None
+
+    if language is not None:
+        tokenizer = gruut.lang.get_tokenizer(language)
+
     # utt id -> (speaker, text)
     utterances = {}
 
@@ -172,6 +180,16 @@ def main():
             else:
                 utt_id, text = line.split("|", maxsplit=1)
                 speaker = "speaker1"
+
+            if tokenizer:
+                # Clean text with gruut
+                clean_words = []
+                for sentence in tokenizer.tokenize(text):
+                    clean_words.extend(
+                        t.text for t in sentence.tokens if tokenizer.is_word(t.text)
+                    )
+
+                text = tokenizer.join_str.join(clean_words)
 
             utterances[utt_id] = (speaker, text)
             speakers.add(speaker)
@@ -394,7 +412,7 @@ def get_args():
     )
     parser.add_argument(
         "--url-format",
-        default="http://localhost:5000/rhasspy/kaldi-align/releases/download/v1.0/{file}",
+        default="https://github.com/rhasspy/kaldi-align/releases/download/v1.0/{file}",
         help="URL format string for downloading models (receives {file})",
     )
     parser.add_argument(

@@ -1,4 +1,5 @@
 """Utility methods for kaldi_align"""
+import csv
 import logging
 import shutil
 import tempfile
@@ -88,20 +89,17 @@ def download_file(url: str, out_file: typing.IO[typing.Any], chunk_size: int = 4
 
 
 def load_metadata(
-    metadata_path: typing.Union[str, Path], has_speaker: bool = False
+    metadata_path: typing.Union[str, Path], has_speaker: bool = False, delimiter="|"
 ) -> typing.Dict[str, typing.Union[str, typing.Tuple[str, str]]]:
+    """Load a CSV file with id|text or id|speaker|text"""
     texts: typing.Dict[str, typing.Union[str, typing.Tuple[str, str]]] = {}
     with open(metadata_path, "r") as metadata_file:
-        for line in metadata_file:
-            line = line.strip()
-            if not line:
-                continue
-
+        for row in csv.reader(metadata_file, delimiter=delimiter):
             if has_speaker:
-                utt_id, speaker, text = line.split("|", maxsplit=2)
+                utt_id, speaker, text = row[0], row[1], row[2]
                 texts[utt_id] = (speaker, text)
             else:
-                utt_id, text = line.split("|", maxsplit=1)
+                utt_id, text = row[0], row[1]
                 texts[utt_id] = text
 
     return texts

@@ -10,7 +10,7 @@ if [[ -d "${venv}" ]]; then
     source "${venv}/bin/activate"
 fi
 
-python_files=("${src_dir}/kaldi_align/"*.py "${src_dir}/bin/"*.py)
+python_files=("${src_dir}/kaldi_align/"*.py)
 
 export PYTHONPATH="${src_dir}"
 

@@ -1,0 +1,5 @@
+# Kaldi Align
+
+## Dependencies
+
+* ffmpeg

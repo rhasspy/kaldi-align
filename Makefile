@@ -15,3 +15,4 @@ reformat:
 
 dist:
 	python3 setup.py sdist
+	scripts/zip-models.sh

@@ -12,6 +12,8 @@ from pathlib import Path
 
 import jsonlines
 
+from .utils import download_kaldi, download_model
+
 _LOGGER = logging.getLogger("kaldi_align")
 
 _DIR = Path(__file__).parent
@@ -28,6 +30,17 @@ _BREAK_MAJOR = "\u2016"  # ‖
 
 _FRAMES_PER_SEC = 100
 
+_MODEL_ALIAS = {
+    "cs": "cs-cz",
+    "de": "de-de",
+    "en": "en-us",
+    "es": "es-es",
+    "fr": "fr-fr",
+    "it": "it-it",
+    "ru": "ru-ru",
+    "sv": "sv-se",
+}
+
 # -----------------------------------------------------------------------------
 
 
@@ -41,17 +54,46 @@ def main():
 
     _LOGGER.debug(args)
 
-    if args.kaldi_dir:
-        kaldi_dir = Path(args.kaldi_dir).absolute()
+    # Set download directory for model files
+    if args.download_dir:
+        args.download_dir = Path(args.download_dir)
     else:
-        kaldi_dir = Path("kaldi").absolute()
+        if "XDG_DATA_HOME" in os.environ:
+            share_home = Path(os.environ["XDG_DATA_HOME"])
+        else:
+            share_home = Path("~/.local/share").expanduser()
 
-    bin_dir = kaldi_dir / "x86_64"
+        args.download_dir = share_home / "kaldi-align"
+
+    _LOGGER.debug("Download directory: %s", args.download_dir)
+
+    if args.kaldi_dir:
+        args.kaldi_dir = Path(args.kaldi_dir).absolute()
+    else:
+        args.kaldi_dir = (args.download_dir / "kaldi").absolute()
+
+    # Download kaldi
+    if not args.kaldi_dir.is_dir():
+        _LOGGER.info("Need to download Kaldi")
+        download_kaldi(args.url_format, args.kaldi_dir.parent)
+        _LOGGER.info("Kaldi downloaded to %s", args.kaldi_dir)
+
+    bin_dir = args.kaldi_dir / "x86_64"
     _LOGGER.debug("Kaldi binaries expected in %s", bin_dir)
 
-    model_dir = _DIR / "models" / args.model
+    # Download model
+    model_dir = Path(args.model)
     if not model_dir.is_dir():
-        model_dir = Path(args.model).absolute()
+        # Model is a name instead of a directory
+        args.model = _MODEL_ALIAS.get(args.model, args.model)
+        model_dir = args.download_dir / "models" / args.model
+
+        if not model_dir.is_dir():
+            _LOGGER.info("Need to download model for %s", args.model)
+            download_model(args.url_format, args.model, model_dir.parent)
+            _LOGGER.info("Model downloaded to %s", model_dir)
+
+    # -------------------------------------------------------------------------
 
     temp_dir = None
     if args.output_dir:
@@ -72,8 +114,8 @@ def main():
             link_dir.unlink()
 
     # Create new links
-    steps_dir.symlink_to(kaldi_dir / "steps", target_is_directory=True)
-    utils_dir.symlink_to(kaldi_dir / "utils", target_is_directory=True)
+    steps_dir.symlink_to(args.kaldi_dir / "steps", target_is_directory=True)
+    utils_dir.symlink_to(args.kaldi_dir / "utils", target_is_directory=True)
     conf_dir.symlink_to(model_dir / "conf", target_is_directory=True)
     model_link_dir.symlink_to(model_dir, target_is_directory=True)
 
@@ -96,6 +138,8 @@ def main():
             print(e.output, file=sys.stderr)
             raise e
 
+    # -------------------------------------------------------------------------
+
     # Create text, utt2spk, wav.scp
     data_dir = output_dir / "data"
     align_dir = data_dir / "align"
@@ -116,21 +160,32 @@ def main():
                 # Stem is utterance id
                 audio_paths[audio_path.stem] = audio_path
 
-    speaker = "speaker1"
-    speakers = [speaker]
     align_dir.mkdir(parents=True, exist_ok=True)
 
     _LOGGER.debug("Loading transcriptions from %s", metadata_csv)
+
+    # utt id -> (speaker, text)
     utterances = {}
+
+    # generate utt id -> real utt id
     kaldi_to_utt = {}
+
+    speakers = set()
+
     with open(metadata_csv, "r") as metadata_file:
         for line in metadata_file:
             line = line.strip()
             if not line:
                 continue
 
-            utt_id, text = line.split("|", maxsplit=1)
-            utterances[utt_id] = text
+            if args.has_speaker:
+                utt_id, speaker, text = line.split("|", maxsplit=1)
+            else:
+                utt_id, text = line.split("|", maxsplit=1)
+                speaker = "speaker1"
+
+            utterances[utt_id] = (speaker, text)
+            speakers.add(speaker)
 
     sorted_utt_ids = sorted(utterances.keys())
     num_digits = int(math.ceil(math.log10(len(sorted_utt_ids))))
@@ -142,6 +197,9 @@ def main():
         align_dir / "wav.scp", "w"
     ) as scp_file:
         for utt_index, utt_id in enumerate(sorted_utt_ids):
+            speaker, text = utterances[utt_id]
+
+            # Use a generated utterance id for Kaldi to avoid sorting issues
             kaldi_utt_id = f"{speaker}-%0{num_digits}d" % utt_index
             kaldi_to_utt[kaldi_utt_id] = utt_id
 
@@ -153,8 +211,6 @@ def main():
                 if not audio_path.is_file():
                     _LOGGER.warning("Missing audio file at %s", audio_path)
                 continue
-
-            text = utterances[utt_id]
 
             print(kaldi_utt_id, text, file=text_file)
             print(kaldi_utt_id, speaker, file=utt2spk_file)
@@ -226,7 +282,12 @@ def main():
     # Phones
     # ------
     _LOGGER.debug("Getting word alignments...")
-    run(str(kaldi_dir / "get_phones.sh"), str(align_dir), str(lang_dir), str(exp_dir))
+    run(
+        str(args.kaldi_dir / "get_phones.sh"),
+        str(align_dir),
+        str(lang_dir),
+        str(exp_dir),
+    )
 
     _LOGGER.info("Alignment finished")
 
@@ -310,6 +371,9 @@ def get_args():
         "--output-file", required=True, help="Path to write alignment JSONL"
     )
     parser.add_argument(
+        "--has-speaker", action="store_true", help="Metadata has format id|speaker|text"
+    )
+    parser.add_argument(
         "--skip-mfccs",
         action="store_true",
         help="Assume MFCCs have already been created",
@@ -338,6 +402,15 @@ def get_args():
         "--train-cmd",
         default="utils/run.pl",
         help="Kaldi $train_cmd (default: utils/run.pl)",
+    )
+    parser.add_argument(
+        "--url-format",
+        default="http://localhost:5000/rhasspy/kaldi-align/releases/download/v1.0/{file}",
+        help="URL format string for downloading models (receives {file})",
+    )
+    parser.add_argument(
+        "--download-dir",
+        help="Directory to download models (default: $XDG_DATA_HOME/kaldi-align)",
     )
     parser.add_argument(
         "--debug", action="store_true", help="Print DEBUG messages to the console"

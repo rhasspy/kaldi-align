@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import csv
 import logging
 import math
 import os
@@ -7,6 +8,7 @@ import platform
 import subprocess
 import sys
 import tempfile
+import typing
 from collections import defaultdict
 from pathlib import Path
 
@@ -138,19 +140,23 @@ def main():
     lang_dir = model_dir / "data" / "lang"
 
     metadata_csv = Path(args.metadata)
+
+    if args.clean_metadata:
+        args.clean_metadata = Path(args.clean_metadata)
+        args.clean_metadata.parent.mkdir(parents=True, exist_ok=True)
+
     audio_paths = {}
 
-    if args.audio_files:
-        with open(args.audio_files, "r") as audio_files:
-            for line in audio_files:
-                line = line.strip()
-                if not line:
-                    continue
+    with open(args.audio_files, "r") as audio_files:
+        for line in audio_files:
+            line = line.strip()
+            if not line:
+                continue
 
-                audio_path = Path(line)
+            audio_path = Path(line)
 
-                # Stem is utterance id
-                audio_paths[audio_path.stem] = audio_path
+            # Stem is utterance id
+            audio_paths[audio_path.stem] = audio_path
 
     align_dir.mkdir(parents=True, exist_ok=True)
 
@@ -169,16 +175,16 @@ def main():
 
     speakers = set()
 
-    with open(metadata_csv, "r") as metadata_file:
-        for line in metadata_file:
-            line = line.strip()
-            if not line:
-                continue
+    clean_writer = (
+        csv.writer(args.clean_metadata, delimiter="|") if args.clean_metadata else None
+    )
 
+    with open(metadata_csv, "r") as metadata_file:
+        for row in csv.reader(metadata_file, delimiter="|"):
             if args.has_speaker:
-                utt_id, speaker, text = line.split("|", maxsplit=2)
+                utt_id, speaker, text = row[0], row[1], row[2]
             else:
-                utt_id, text = line.split("|", maxsplit=1)
+                utt_id, text = row[0], row[1]
                 speaker = "speaker1"
 
             if tokenizer:
@@ -193,6 +199,16 @@ def main():
 
             utterances[utt_id] = (speaker, text)
             speakers.add(speaker)
+
+            if clean_writer:
+                if args.has_speaker:
+                    writer.writerow((utt_id, speaker, text))
+                else:
+                    writer.writerow((utt_id, text))
+
+    if clean_writer:
+        clean_writer.close()
+        clean_writer = None
 
     sorted_utt_ids = sorted(utterances.keys())
     num_digits = int(math.ceil(math.log10(len(sorted_utt_ids))))
@@ -372,8 +388,9 @@ def main():
 def get_args():
     parser = argparse.ArgumentParser(prog="kaldi-align")
     parser.add_argument(
-        "--metadata", required=True, help="Path to CSV metadata with id|text"
+        "--metadata", required=True, help="Path to read CSV metadata with id|text"
     )
+    parser.add_argument("--clean-metadata", help="Path write clean CSV metadata")
     parser.add_argument(
         "--output-file", required=True, help="Path to write alignment JSONL"
     )
@@ -386,7 +403,9 @@ def get_args():
         help="Assume MFCCs have already been created",
     )
     parser.add_argument("--model", required=True, help="Name or path of Kaldi model")
-    parser.add_argument("--audio-files", help="File with paths of audio files")
+    parser.add_argument(
+        "--audio-files", required=True, help="File with paths of audio files"
+    )
     parser.add_argument(
         "--kaldi-dir", help="Path to Kaldi directory (default: $PWD/kaldi)"
     )

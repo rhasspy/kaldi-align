@@ -25,6 +25,7 @@ def main():
     parser.add_argument(
         "--output-dir", required=True, help="Directory with output audio files"
     )
+    parser.add_argument("--sample-rate", type=int, help="Force a specific sample rate")
     parser.add_argument(
         "--min-sec",
         default=0.5,
@@ -135,6 +136,9 @@ def main():
                 # Load audio
                 _LOGGER.debug("Loading audio from %s", src_path)
                 audio = AudioSegment.from_file(str(src_path))
+
+                if args.sample_rate is not None:
+                    audio.set_frame_rate(args.sample_rate)
 
                 # Write trimmed audio
                 dest_path = args.output_dir / f"{utt_id}.wav"

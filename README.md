@@ -1,6 +1,6 @@
 # Kaldi Align
 
-A basic forced aligner using Kaldi.
+A basic forced aligner using [Kaldi](https://kaldi-asr.org/) and [gruut](https://github.com/rhasspy/gruut).
 
 ## Installation:
 

@@ -285,7 +285,7 @@ def main():
     # -----
     src_dir = model_dir / "model"
     exp_dir = output_dir / "exp" / "align"
-    num_align_jobs = min(args.num_jobs, len(speakers))
+    num_align_jobs = min(args.num_jobs, len(utterances))
 
     _LOGGER.debug("Aligning in %s (num_jobs=%s)", exp_dir, num_align_jobs)
     _LOGGER.info("Alignment started")

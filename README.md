@@ -49,10 +49,13 @@ Create a CSV file with the format `id|P P P` where each `P` is a phoneme id.
 $ bin/align2csv \
     --language <LANG> \
     --alignments alignments.json \
+    --phoneme-ids /path/to/phonemes.txt \
     > /path/to/phonemes.csv
 ```
 
 where `<LANG>` is one of [gruut's supported languages](https://github.com/rhasspy/gruut#supported-languages).
+
+The `--phoneme-ids` path is optional, but recommended. It will write a text file with the map between IPA text phonemes and the integer ids used in the CSV output.
 
 ### Trimmed WAV Files
 

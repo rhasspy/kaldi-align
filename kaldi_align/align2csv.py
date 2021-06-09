@@ -22,6 +22,9 @@ def main():
         "--alignments", required=True, help="Path to alignment JSONL file"
     )
     parser.add_argument(
+        "--phoneme-ids", help="Path to write text file with phoneme ids"
+    )
+    parser.add_argument(
         "--debug", action="store_true", help="Print DEBUG messages to the console"
     )
     args = parser.parse_args()
@@ -37,7 +40,18 @@ def main():
     args.alignments = Path(args.alignments)
 
     args.language = LANG_ALIAS.get(args.language, args.language)
-    phonemes_to_id = {p: i for i, p in enumerate(id_to_phonemes(args.language))}
+    phoneme_ids = id_to_phonemes(args.language)
+    phonemes_to_id = {p: i for i, p in enumerate(phoneme_ids)}
+
+    # -------------------------------------------------------------------------
+
+    if args.phoneme_ids:
+        # Write text file with format:
+        # id phoneme
+        # where id is a 0-based index and phoneme a string
+        with open(args.phoneme_ids, "w") as ids_file:
+            for i, p in enumerate(phoneme_ids):
+                print(i, p, file=ids_file)
 
     # -------------------------------------------------------------------------
 

@@ -202,9 +202,9 @@ def main():
 
             if clean_writer:
                 if args.has_speaker:
-                    writer.writerow((utt_id, speaker, text))
+                    clean_writer.writerow((utt_id, speaker, text))
                 else:
-                    writer.writerow((utt_id, text))
+                    clean_writer.writerow((utt_id, text))
 
     if clean_writer:
         clean_writer.close()

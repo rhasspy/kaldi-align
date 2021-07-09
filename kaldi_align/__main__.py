@@ -202,9 +202,9 @@ def main():
 
             if clean_writer:
                 if args.has_speaker:
-                    writer.writerow((utt_id, speaker, text))
+                    clean_writer.writerow((utt_id, speaker, text))
                 else:
-                    writer.writerow((utt_id, text))
+                    clean_writer.writerow((utt_id, text))
 
     if clean_writer:
         clean_writer.close()
@@ -285,7 +285,7 @@ def main():
     # -----
     src_dir = model_dir / "model"
     exp_dir = output_dir / "exp" / "align"
-    num_align_jobs = min(args.num_jobs, len(speakers))
+    num_align_jobs = min(args.num_jobs, len(utterances))
 
     _LOGGER.debug("Aligning in %s (num_jobs=%s)", exp_dir, num_align_jobs)
     _LOGGER.info("Alignment started")

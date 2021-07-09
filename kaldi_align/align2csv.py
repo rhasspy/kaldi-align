@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import argparse
+import csv
 import json
 import logging
+import sys
 from pathlib import Path
 
 from gruut_ipa import IPA
@@ -51,6 +53,7 @@ def main():
     texts = load_metadata(args.metadata, has_speaker=args.has_speaker)
     _LOGGER.info("Loaded %s utterance(s)", len(texts))
 
+    writer = csv.writer(sys.stdout, delimiter="|")
     with open(args.alignments, "r") as alignments_file:
         # Read alignments
         for line in alignments_file:
@@ -72,8 +75,15 @@ def main():
                 pron_ids = [
                     phonemes_to_id[p] for p in split_phonemes if p not in SKIP_PHONES
                 ]
-                print(pron_obj["id"], end="|")
-                print(*pron_ids)
+
+                utt_id = pron_obj["id"]
+                pron_id_str = " ".join(str(p_id) for p_id in pron_ids)
+
+                if args.has_speaker:
+                    speaker, _text = texts[utt_id]
+                    writer.writerow((utt_id, speaker, pron_id_str))
+                else:
+                    writer.writerow((utt_id, pron_id_str))
             except Exception:
                 _LOGGER.exception(line)
 

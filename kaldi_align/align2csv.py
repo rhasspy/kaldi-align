@@ -8,7 +8,7 @@ from pathlib import Path
 
 from gruut_ipa import IPA
 
-from .utils import LANG_ALIAS, id_to_phonemes
+from .utils import LANG_ALIAS, id_to_phonemes, load_metadata
 
 _LOGGER = logging.getLogger("align2csv")
 
@@ -23,8 +23,12 @@ def main():
     parser.add_argument(
         "--alignments", required=True, help="Path to alignment JSONL file"
     )
+    parser.add_argument("--metadata", required=True, help="Path to metadata CSV file")
     parser.add_argument(
         "--phoneme-ids", help="Path to write text file with phoneme ids"
+    )
+    parser.add_argument(
+        "--has-speaker", action="store_true", help="Output id|speaker|text"
     )
     parser.add_argument(
         "--debug", action="store_true", help="Print DEBUG messages to the console"
@@ -40,10 +44,18 @@ def main():
 
     # Convert to paths
     args.alignments = Path(args.alignments)
+    args.metadata = Path(args.metadata)
 
     args.language = LANG_ALIAS.get(args.language, args.language)
     phoneme_ids = id_to_phonemes(args.language)
     phonemes_to_id = {p: i for i, p in enumerate(phoneme_ids)}
+
+    # -------------------------------------------------------------------------
+
+    # Load metadata
+    _LOGGER.debug("Loading metadata from %s", args.metadata)
+    texts = load_metadata(args.metadata, has_speaker=args.has_speaker)
+    _LOGGER.info("Loaded %s utterance(s)", len(texts))
 
     # -------------------------------------------------------------------------
 

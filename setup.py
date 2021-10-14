@@ -18,11 +18,11 @@ if readme_path.is_file():
 requirements = []
 requirements_path = this_dir / "requirements.txt"
 if requirements_path.is_file():
-    with open(requirements_path, "r") as requirements_file:
+    with open(requirements_path, "r", encoding="utf-8") as requirements_file:
         requirements = requirements_file.read().splitlines()
 
-version_path = this_dir / "VERSION"
-with open(version_path, "r") as version_file:
+version_path = this_dir / "kaldi_align" / "VERSION"
+with open(version_path, "r", encoding="utf-8") as version_file:
     version = version_file.read().strip()
 
 # -----------------------------------------------------------------------------
@@ -39,7 +39,7 @@ setuptools.setup(
     install_requires=requirements,
     entry_points={
         "console_scripts": [
-            "kaldi_align = kaldi_align.__main__:main",
+            "kaldi-align = kaldi_align.__main__:main",
             "align2wavs = kaldi_align.align2wavs:main",
             "align2csv = kaldi_align.align2csv:main",
         ]

@@ -63,14 +63,14 @@ def main():
         # Write text file with format:
         # id phoneme
         # where id is a 0-based index and phoneme a string
-        with open(args.phoneme_ids, "w") as ids_file:
+        with open(args.phoneme_ids, "w", encoding="utf-8") as ids_file:
             for i, p in enumerate(phoneme_ids):
                 print(i, p, file=ids_file)
 
     # -------------------------------------------------------------------------
 
     writer = csv.writer(sys.stdout, delimiter="|")
-    with open(args.alignments, "r") as alignments_file:
+    with open(args.alignments, "r", encoding="utf-8") as alignments_file:
         # Read alignments
         for line in alignments_file:
             pron_obj = json.loads(line)

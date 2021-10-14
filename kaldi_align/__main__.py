@@ -15,7 +15,8 @@ from pathlib import Path
 import gruut
 import jsonlines
 
-from .utils import LANG_ALIAS, download_kaldi, download_model
+from kaldi_align import __version__
+from kaldi_align.utils import LANG_ALIAS, download_kaldi, download_model
 
 _LOGGER = logging.getLogger("kaldi_align")
 
@@ -38,6 +39,10 @@ _FRAMES_PER_SEC = 100
 
 def main():
     """Main entry point"""
+    if "--version" in sys.argv[1:]:
+        print(__version__)
+        sys.exit(0)
+
     args = get_args()
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -94,6 +99,7 @@ def main():
         output_dir = Path(args.output_dir).absolute()
         output_dir.mkdir(parents=True, exist_ok=True)
     else:
+        # pylint: disable=consider-using-with
         temp_dir = tempfile.TemporaryDirectory()
         output_dir = Path(temp_dir.name)
 
@@ -147,7 +153,7 @@ def main():
 
     audio_paths = {}
 
-    with open(args.audio_files, "r") as audio_files:
+    with open(args.audio_files, "r", encoding="utf-8") as audio_files:
         for line in audio_files:
             line = line.strip()
             if not line:
@@ -162,11 +168,6 @@ def main():
 
     _LOGGER.debug("Loading transcriptions from %s", metadata_csv)
 
-    tokenizer: typing.Optional[gruut.Tokenizer] = None
-
-    if language is not None:
-        tokenizer = gruut.lang.get_tokenizer(language)
-
     # utt id -> (speaker, text)
     utterances = {}
 
@@ -179,7 +180,7 @@ def main():
         csv.writer(args.clean_metadata, delimiter="|") if args.clean_metadata else None
     )
 
-    with open(metadata_csv, "r") as metadata_file:
+    with open(metadata_csv, "r", encoding="utf-8") as metadata_file:
         for row in csv.reader(metadata_file, delimiter="|"):
             if args.has_speaker:
                 utt_id, speaker, text = row[0], row[1], row[2]
@@ -187,15 +188,13 @@ def main():
                 utt_id, text = row[0], row[1]
                 speaker = "speaker1"
 
-            if tokenizer:
+            try:
                 # Clean text with gruut
-                clean_words = []
-                for sentence in tokenizer.tokenize(text):
-                    clean_words.extend(
-                        t.text for t in sentence.tokens if tokenizer.is_word(t.text)
-                    )
-
-                text = tokenizer.join_str.join(clean_words)
+                text = " ".join(
+                    sent.text_spoken for sent in gruut.sentences(text, lang=language)
+                )
+            except Exception:
+                _LOGGER.exception("clean words with gruut")
 
             utterances[utt_id] = (speaker, text)
             speakers.add(speaker)
@@ -214,10 +213,12 @@ def main():
     num_digits = int(math.ceil(math.log10(len(sorted_utt_ids))))
 
     _LOGGER.debug("Writing Kaldi files to %s", align_dir)
-    with open(align_dir / "text", "w") as text_file, open(
-        align_dir / "utt2spk", "w"
-    ) as utt2spk_file, open(align_dir / "id2utt", "w") as id_file, open(
-        align_dir / "wav.scp", "w"
+    with open(align_dir / "text", "w", encoding="utf-8") as text_file, open(
+        align_dir / "utt2spk", "w", encoding="utf-8"
+    ) as utt2spk_file, open(
+        align_dir / "id2utt", "w", encoding="utf-8"
+    ) as id_file, open(
+        align_dir / "wav.scp", "w", encoding="utf-8"
     ) as scp_file:
         for utt_index, utt_id in enumerate(sorted_utt_ids):
             speaker, text = utterances[utt_id]
@@ -315,7 +316,7 @@ def main():
     _LOGGER.info("Alignment finished")
 
     # Save utterance mapping
-    with open(output_dir / "utt_map.txt", "w") as mapping_file:
+    with open(output_dir / "utt_map.txt", "w", encoding="utf-8") as mapping_file:
         for kaldi_utt_id, utt_id in kaldi_to_utt.items():
             print(kaldi_utt_id, utt_id, file=mapping_file)
 
@@ -325,7 +326,7 @@ def main():
     utt_words = defaultdict(list)
 
     _LOGGER.debug("Converting to JSON...")
-    with open(exp_dir / "phones.prons", "r") as prons_file:
+    with open(exp_dir / "phones.prons", "r", encoding="utf-8") as prons_file:
         for line in prons_file:
             line = line.strip()
             if not line:
@@ -363,7 +364,7 @@ def main():
 
             utt_words[utt_id].append({"word": word, "phones": word_phones})
 
-    with open(args.output_file, "w") as output_file:
+    with open(args.output_file, "w", encoding="utf-8") as output_file:
         writer: jsonlines.Writer = jsonlines.Writer(output_file)
         with writer:
             for utt_id, utt_words in utt_words.items():
@@ -438,6 +439,7 @@ def get_args():
         "--download-dir",
         help="Directory to download models (default: $XDG_DATA_HOME/kaldi-align)",
     )
+    parser.add_argument("--version", action="store_true", help="Print version and exit")
     parser.add_argument(
         "--debug", action="store_true", help="Print DEBUG messages to the console"
     )

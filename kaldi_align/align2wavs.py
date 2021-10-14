@@ -69,7 +69,7 @@ def main():
 
     # Cache file paths by stem
     audio_paths = {}
-    with open(args.audio_files, "r") as audio_files:
+    with open(args.audio_files, "r", encoding="utf-8") as audio_files:
         for line in audio_files:
             line = line.strip()
             if not line:
@@ -82,8 +82,8 @@ def main():
 
     out_metadata_path = args.output_dir / "metadata.csv"
 
-    with open(out_metadata_path, "w") as out_metadata_file, open(
-        args.alignments, "r"
+    with open(out_metadata_path, "w", encoding="utf-8") as out_metadata_file, open(
+        args.alignments, "r", encoding="utf-8"
     ) as alignments_file:
         # Read alignments
         for line_idx, line in enumerate(alignments_file):

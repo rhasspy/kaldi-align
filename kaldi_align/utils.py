@@ -93,7 +93,7 @@ def load_metadata(
 ) -> typing.Dict[str, typing.Union[str, typing.Tuple[str, str]]]:
     """Load a CSV file with id|text or id|speaker|text"""
     texts: typing.Dict[str, typing.Union[str, typing.Tuple[str, str]]] = {}
-    with open(metadata_path, "r") as metadata_file:
+    with open(metadata_path, "r", encoding="utf-8") as metadata_file:
         for row in csv.reader(metadata_file, delimiter=delimiter):
             if has_speaker:
                 utt_id, speaker, text = row[0], row[1], row[2]

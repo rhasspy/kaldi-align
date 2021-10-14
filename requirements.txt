@@ -1,4 +1,4 @@
-gruut[cs,de,es,fr,it,nl,ru,sv]~=1.1.0
+gruut[cs,de,es,fa,fr,it,nl,ru,sv]~=2.0.0
 jsonlines~=1.2.0
 pydub~=0.25.0
 requests~=2.25.0

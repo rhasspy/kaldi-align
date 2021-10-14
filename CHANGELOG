@@ -1,0 +1,13 @@
+## [1.1] - 2021 Oct 14
+
+### Added
+
+- Support for Persian/Farsi (fa)
+
+### Changed
+
+- Upgrade to gruut 2.0
+
+### Fixed
+
+- Specify encoding for all open() calls

@@ -16,6 +16,7 @@ import gruut
 import jsonlines
 
 from kaldi_align import __version__
+from kaldi_align.const import _BREAK_MAJOR, _BREAK_MINOR, _FRAMES_PER_SEC, _WORD_BREAK
 from kaldi_align.utils import LANG_ALIAS, download_kaldi, download_model
 
 _LOGGER = logging.getLogger("kaldi_align")
@@ -25,14 +26,6 @@ _ENV = dict(os.environ)
 
 _TRAIN_CMD = "utils/run.pl"
 
-_WORD_BREAK = "#"
-
-_SILENCE_PHONE = "SIL"
-
-_BREAK_MINOR = "|"
-_BREAK_MAJOR = "\u2016"  # ‖
-
-_FRAMES_PER_SEC = 100
 
 # -----------------------------------------------------------------------------
 
@@ -363,6 +356,9 @@ def main():
                 phone_start_frame += phone_frames
 
             utt_words[utt_id].append({"word": word, "phones": word_phones})
+
+    # Create output directory
+    os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
 
     with open(args.output_file, "w", encoding="utf-8") as output_file:
         writer: jsonlines.Writer = jsonlines.Writer(output_file)

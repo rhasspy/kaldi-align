@@ -6,7 +6,7 @@ from pathlib import Path
 
 from pydub import AudioSegment
 
-from .utils import load_metadata
+from kaldi_align.utils import load_metadata
 
 _LOGGER = logging.getLogger("align2wavs")
 

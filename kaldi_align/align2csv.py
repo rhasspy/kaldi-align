@@ -8,7 +8,7 @@ from pathlib import Path
 
 from gruut_ipa import IPA
 
-from .utils import LANG_ALIAS, id_to_phonemes, load_metadata
+from kaldi_align.utils import LANG_ALIAS, id_to_phonemes, load_metadata
 
 _LOGGER = logging.getLogger("align2csv")
 
